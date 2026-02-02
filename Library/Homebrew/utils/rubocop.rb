@@ -9,6 +9,4 @@ Warnings.ignore :parser_syntax do
   require "rubocop"
 end
 
-require "rubocop/test_prof"
-
 exit RuboCop::CLI.new.run
