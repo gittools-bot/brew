@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "changed=$(git diff --name-only main...HEAD); [ -z \"$changed\" ] || ./bin/brew tests --changed",
+            "command": "changed=$(git diff --name-only main); [ -z \"$changed\" ] || ./bin/brew tests --changed",
             "timeout": 360
           }
         ]
