@@ -359,7 +359,7 @@ RSpec.describe Homebrew::CLI::NamedArgs do
       expect(described_class.new("foo", "baz").to_paths(only: :cask)).to eq [cask_path, Cask::CaskLoader.path("baz")]
     end
 
-    context "with without_api: true" do
+    context "when without_api: true" do
       it "returns a bare path for an API-known formula when the tap is not installed" do
         allow(CoreTap.instance).to receive(:installed?).and_return(false)
 
