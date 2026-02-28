@@ -53,6 +53,14 @@ module Homebrew
             [HOMEBREW_REPOSITORY]
           end
         else
+          args.named.each do |name|
+            if !args.cask? && !CoreTap.instance.installed? && Homebrew::API.formula_names.include?(name)
+              CoreTap.instance.install(force: true)
+            elsif !args.formula? && !CoreCaskTap.instance.installed? && Homebrew::API.cask_tokens.include?(name)
+              CoreCaskTap.instance.install(force: true)
+            end
+          end
+
           expanded_paths = args.named.to_paths
           expanded_paths.each do |path|
             raise_with_message!(path, args.cask?) unless path.exist?
