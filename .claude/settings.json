@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "git diff --quiet --no-ext-diff || ./bin/brew tests --changed",
+            "command": "./bin/brew tests --changed",
             "timeout": 360
           }
         ]
