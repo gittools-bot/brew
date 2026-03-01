@@ -358,6 +358,25 @@ RSpec.describe Homebrew::CLI::NamedArgs do
 
       expect(described_class.new("foo", "baz").to_paths(only: :cask)).to eq [cask_path, Cask::CaskLoader.path("baz")]
     end
+
+    context "when without_api: true" do
+      it "returns a bare path for an API-known formula when the tap is not installed" do
+        allow(CoreTap.instance).to receive(:installed?).and_return(false)
+
+        require "api"
+        allow(Homebrew::API).to receive(:formula_names).and_return(["foo"])
+        allow(Homebrew::API::Formula).to receive(:all_formulae).and_return("foo" => {})
+
+        named_args = described_class.new("foo", without_api: true)
+        paths = named_args.to_paths
+
+        # to_paths returns a bare expanded path (not the core formula path) because
+        # without_api: true sets HOMEBREW_NO_INSTALL_FROM_API=1 which defeats the
+        # API name fallback check. The brew edit command works around this by
+        # auto-tapping before calling to_paths.
+        expect(paths.first.to_s).not_to match(%r{homebrew-core/Formula})
+      end
+    end
   end
 
   describe "#to_taps" do
