@@ -47,13 +47,7 @@ RSpec.describe Homebrew::Livecheck::Strategy::GithubReleases do
           "prerelease": false
         },
         {
-          "tag_name": "no-version-tag-also",
-          "name": "1.2.2",
-          "draft": false,
-          "prerelease": false
-        },
-        {
-          "tag_name": "1.2.1",
+          "tag_name": "1.2.2",
           "name": "No version title",
           "draft": false,
           "prerelease": false
@@ -90,7 +84,7 @@ RSpec.describe Homebrew::Livecheck::Strategy::GithubReleases do
   end
   let(:json) { JSON.parse(content) }
 
-  let(:matches) { ["1.2.3", "1.2.2", "1.2.1"] }
+  let(:matches) { ["1.2.3", "1.2.2"] }
 
   describe "::match?" do
     it "returns true for a GitHub release artifact URL" do
@@ -149,12 +143,9 @@ RSpec.describe Homebrew::Livecheck::Strategy::GithubReleases do
         json.map do |release|
           next if release["draft"] || release["prerelease"]
 
-          match = release["tag_name"]&.match(regex)
-          next if match.blank?
-
-          match[1]
+          release["tag_name"]&.[](regex, 1)
         end
-      end).to eq(["1.2.3", "1.2.1"])
+      end).to eq(matches)
     end
 
     it "allows a nil return from a block" do
@@ -213,7 +204,7 @@ RSpec.describe Homebrew::Livecheck::Strategy::GithubReleases do
           end
         end,
       ).to eq(match_data[:cached].merge({
-        matches: ["1.2.3", "1.2.1"].to_h { |v| [v, Version.new(v)] },
+        matches: ["1.2.3", "1.2.2"].to_h { |v| [v, Version.new(v)] },
         regex:   brew_regex,
       }))
     end

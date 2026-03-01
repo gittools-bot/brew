@@ -51,11 +51,6 @@ module Homebrew
         # isn't provided.
         DEFAULT_REGEX = /v?(\d+(?:\.\d+)+)/i
 
-        # Keys in the release JSON that could contain the version.
-        # The tag name is checked first, to better align with the {Git}
-        # strategy.
-        VERSION_KEYS = T.let(["tag_name", "name"].freeze, T::Array[String])
-
         # Whether the strategy can be applied to the provided URL.
         #
         # @param url [String] the URL to match against
@@ -115,14 +110,7 @@ module Homebrew
           json.compact_blank.filter_map do |release|
             next if release["draft"] || release["prerelease"]
 
-            value = T.let(nil, T.nilable(String))
-            VERSION_KEYS.find do |key|
-              match = release[key]&.match(regex)
-              next if match.blank?
-
-              value = match[1]
-            end
-            value
+            release["tag_name"]&.[](regex, 1)
           end.uniq
         end
 
