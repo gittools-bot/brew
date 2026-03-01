@@ -54,12 +54,11 @@ module Homebrew
           end
         else
           args.named.each do |name|
-            formula_name = name.delete_prefix("#{CoreTap.instance.name}/")
-            cask_token = name.delete_prefix("#{CoreCaskTap.instance.name}/")
-
-            if !args.cask? && !CoreTap.instance.installed? && Homebrew::API.formula_names.include?(formula_name)
+            if !args.cask? && !CoreTap.instance.installed? &&
+               Homebrew::API.formula_names.include?(name.delete_prefix("#{CoreTap.instance.name}/"))
               CoreTap.instance.install(force: true)
-            elsif !args.formula? && !CoreCaskTap.instance.installed? && Homebrew::API.cask_tokens.include?(cask_token)
+            elsif !args.formula? && !CoreCaskTap.instance.installed? &&
+                  Homebrew::API.cask_tokens.include?(name.delete_prefix("#{CoreCaskTap.instance.name}/"))
               CoreCaskTap.instance.install(force: true)
             end
           end
