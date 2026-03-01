@@ -2053,4 +2053,105 @@ RSpec.describe Formula do
       expect(f.class.preserve_rpath?).to be(false)
     end
   end
+
+  describe "#deprecate! and #disable!" do
+    let(:deprecation_date) { "2020-01-01" }
+    let(:disable_date) { "2021-01-01" }
+
+    context "with both dates provided in correct order" do
+      let(:f) do
+        deprecation_date_ = deprecation_date
+        disable_date_ = disable_date
+        formula "foo" do
+          url "foo-1.0"
+          deprecate! date: deprecation_date_.to_s, because: :unmaintained
+          disable! date: disable_date_.to_s, because: :unsupported
+        end
+      end
+
+      it "is not deprecated before deprecation date" do
+        allow(Date).to receive(:today).and_return(Date.parse(deprecation_date) - 1)
+        expect(f.deprecated?).to be(false)
+        expect(f.deprecation_reason).to be_nil
+        expect(f.disabled?).to be(false)
+        expect(f.disable_reason).to be_nil
+      end
+
+      it "is deprecated on deprecation date" do
+        allow(Date).to receive(:today).and_return(Date.parse(deprecation_date))
+        expect(f.deprecated?).to be(true)
+        expect(f.deprecation_reason).to be(:unmaintained)
+        expect(f.disabled?).to be(false)
+        expect(f.disable_reason).to be_nil
+      end
+
+      it "is disabled on disable date" do
+        allow(Date).to receive(:today).and_return(Date.parse(disable_date))
+        expect(f.deprecated?).to be(true)
+        expect(f.deprecation_reason).to be(:unmaintained)
+        expect(f.disabled?).to be(true)
+        expect(f.disable_reason).to be(:unsupported)
+      end
+    end
+
+    context "with both dates provided in incorrect order" do
+      let(:f) do
+        deprecation_date_ = deprecation_date
+        disable_date_ = disable_date
+        formula "foo" do
+          url "foo-1.0"
+          disable! date: disable_date_.to_s, because: :unsupported
+          deprecate! date: deprecation_date_.to_s, because: :unmaintained
+        end
+      end
+
+      it "is not deprecated before deprecation date" do
+        allow(Date).to receive(:today).and_return(Date.parse(deprecation_date) - 1)
+        expect(f.deprecated?).to be(false)
+        expect(f.deprecation_reason).to be_nil
+        expect(f.disabled?).to be(false)
+        expect(f.disable_reason).to be_nil
+      end
+
+      it "is deprecated on deprecation date" do
+        allow(Date).to receive(:today).and_return(Date.parse(deprecation_date))
+        expect(f.deprecated?).to be(true)
+        expect(f.deprecation_reason).to be(:unmaintained)
+        expect(f.disabled?).to be(false)
+        expect(f.disable_reason).to be_nil
+      end
+
+      it "is disabled on disable date" do
+        allow(Date).to receive(:today).and_return(Date.parse(disable_date))
+        expect(f.deprecated?).to be(true)
+        expect(f.deprecation_reason).to be(:unmaintained)
+        expect(f.disabled?).to be(true)
+        expect(f.disable_reason).to be(:unsupported)
+      end
+    end
+
+    context "with only disable date" do
+      let(:f) do
+        disable_date_ = disable_date
+        formula "foo" do
+          url "foo-1.0"
+          disable! date: disable_date_.to_s, because: :unsupported
+        end
+      end
+
+      it "is deprecated before disable date" do
+        allow(Date).to receive(:today).and_return(Date.parse(disable_date) << 12)
+        expect(f.deprecated?).to be(true)
+        expect(f.deprecation_reason).to be(:unsupported)
+        expect(f.disabled?).to be(false)
+        expect(f.disable_reason).to be_nil
+      end
+
+      it "is disabled on disable date" do
+        allow(Date).to receive(:today).and_return(Date.parse(disable_date))
+        expect(f.disabled?).to be(true)
+        expect(f.disable_reason).to be(:unsupported)
+      end
+    end
+  end
 end

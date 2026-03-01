@@ -4687,12 +4687,17 @@ class Formula
       )
 
       @deprecation_date = T.let(Date.parse(date), T.nilable(Date))
-      return if T.must(@deprecation_date) > Date.today
-
-      @deprecation_reason = T.let(because, T.nilable(T.any(String, Symbol)))
-      @deprecation_replacement_formula = T.let(replacement_formula.presence || replacement, T.nilable(String))
-      @deprecation_replacement_cask = T.let(replacement_cask.presence || replacement, T.nilable(String))
-      @deprecated = T.let(true, T.nilable(T::Boolean))
+      @deprecated = T.let(T.must(@deprecation_date) <= Date.today, T.nilable(T::Boolean))
+      if @deprecated
+        @deprecation_reason = T.let(because, T.nilable(T.any(String, Symbol)))
+        @deprecation_replacement_formula = T.let(replacement_formula.presence || replacement, T.nilable(String))
+        @deprecation_replacement_cask = T.let(replacement_cask.presence || replacement, T.nilable(String))
+      else
+        # Reset these to handle disable! before deprecate!
+        @deprecation_reason = nil
+        @deprecation_replacement_formula = nil
+        @deprecation_replacement_cask = nil
+      end
     end
 
     # Whether this {Formula} is deprecated (i.e. warns on installation).
@@ -4740,9 +4745,9 @@ class Formula
     sig { returns(T.nilable(T::Hash[Symbol, T.nilable(T.any(String, Symbol))])) }
     attr_reader :deprecate_args
 
-    # Disables a {Formula} (on the given date) so it cannot be
-    # installed. If the date has not yet passed the formula
-    # will be deprecated instead of disabled.
+    # Disables a {Formula} (on the given date) so it cannot be installed.
+    # If the date has not yet passed and there is no deprecate! date,
+    # then the formula will be deprecated.
     #
     # ### Examples
     #
@@ -4794,6 +4799,8 @@ class Formula
       @disable_date = T.let(Date.parse(date), T.nilable(Date))
 
       if T.must(@disable_date) > Date.today
+        return if @deprecation_date.present?
+
         @deprecation_reason = T.let(because, T.nilable(T.any(String, Symbol)))
         @deprecation_replacement_formula = T.let(replacement_formula.presence || replacement, T.nilable(String))
         @deprecation_replacement_cask = T.let(replacement_cask.presence || replacement, T.nilable(String))
